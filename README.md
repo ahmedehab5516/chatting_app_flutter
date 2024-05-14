@@ -1,6 +1,8 @@
 # chatting_app_flutter
 
 A new Flutter project.
+still in developing phase.
+still some featuers will be added. don't know what features yet but i'll figure it out.
 
 ## experience for 1 year in developing apps using flutter.
 

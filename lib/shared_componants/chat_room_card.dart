@@ -158,6 +158,17 @@ class BuildChatRoomCard extends StatelessWidget {
                                 ),
                               );
                             }
+                             if (snapshot.data!.docs.isEmpty) {
+                              return Text(
+                                "no messages yet!!",
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 15,
+                                ),
+                              );
+                            }
+                            
                             if (snapshot.connectionState ==
                                 ConnectionState.waiting) {
                               return Text(

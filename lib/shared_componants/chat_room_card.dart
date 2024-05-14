@@ -51,7 +51,7 @@ class BuildChatRoomCard extends StatelessWidget {
                                 fit: BoxFit.cover,
                                 scale: 1.5,
                               )
-                            : Image.asset("assets/images/sexy_sundress.jpg"),
+                            : const Icon(Icons.person, color: Colors.black),
                       ),
                       const SizedBox(height: 10.0),
                       Row(
@@ -106,8 +106,8 @@ class BuildChatRoomCard extends StatelessWidget {
                     )
                   : const CircleAvatar(
                       radius: 40,
-                      backgroundImage: AssetImage(
-                        "assets/images/sexy_sundress.jpg",
+                      backgroundImage: NetworkImage(
+                        "https://i.pinimg.com/736x/0c/da/c3/0cdac3e099c511fd6821028f53f589df.jpg",
                       ),
                     ),
             ),

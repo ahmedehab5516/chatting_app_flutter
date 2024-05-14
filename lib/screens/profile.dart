@@ -99,7 +99,7 @@ class Profile extends StatelessWidget {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(20),
                         child: Image.network(
-                          "https://i.pinimg.com/474x/41/6e/9a/416e9a8813f6f4bc0933e165464837ee.jpg",
+                          "https://i.pinimg.com/736x/0c/da/c3/0cdac3e099c511fd6821028f53f589df.jpg",
                           width: 80.0,
                           fit: BoxFit.cover,
                         ),

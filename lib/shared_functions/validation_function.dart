@@ -51,24 +51,3 @@ String? validationFunction(String validateType, String value) {
   return null;
 }
 
-// signInWithGoogle(BuildContext context) async {
-
-//   try {
-//     final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-
-//     final GoogleSignInAuthentication? googleAuth =
-//         await googleUser?.authentication;
-
-//     final credential = GoogleAuthProvider.credential(
-//       accessToken: googleAuth?.accessToken,
-//       idToken: googleAuth?.idToken,
-//     );
-//     UserCredential userCredential =
-//         await FirebaseAuth.instance.signInWithCredential(credential);
-
-
-//     return userCredential;
-//   } on Exception catch (e) {
-//     print('exception->$e');
-//   }
-// }

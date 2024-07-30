@@ -9,14 +9,18 @@ class User {
   final int birthYear;
   final String gender;
   final DateTime createdAt;
+  final bool state;
+  final bool isArchived;
 
   User({
     required this.username,
+    required this.state,
     required this.createdAt,
     required this.email,
     required this.uid,
     required this.phoneNumber,
     this.imageUrl,
+    required this.isArchived,
     required this.birthDay,
     required this.birthMonth,
     required this.birthYear,
@@ -27,7 +31,9 @@ class User {
     return {
       'username': username,
       'uid': uid,
+      'state': state,
       'email': email,
+      'isArchived' : isArchived,
       'phoneNumber': phoneNumber,
       'imageUrl': imageUrl,
       'birthDay': birthDay,

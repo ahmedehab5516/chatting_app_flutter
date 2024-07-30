@@ -1,4 +1,3 @@
-import 'dart:io';
 
 import 'package:chatting_app_v2/controllers/settings_controller.dart';
 import 'package:chatting_app_v2/routes.dart';
@@ -26,59 +25,41 @@ class SettingsScreen extends StatelessWidget {
                 const EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0),
             child: GestureDetector(
               onTap: () => Get.toNamed(Routes.editPersonalInfo),
-              child: Row(
-                children: [
-                  GetBuilder<SettingsController>(
-                    builder: (controller) {
-                      if (controller.profileImage != null) {
-                        return CircleAvatar(
-                          radius: 40.0,
-                          backgroundImage:
-                              FileImage(File(controller.profileImage!)),
-                        );
-                      } else {
-                        // Handle case when profileImage is null, e.g., display a placeholder
-                        return const CircleAvatar(
-                          radius: 40.0,
-                          backgroundColor: Colors.grey, // Placeholder color
-                          child: Icon(
-                            Icons.person,
-                            color: Colors.black,
-                          ), // Placeholder icon or text
-                        );
-                      }
-                    },
-                  ),
-                  const SizedBox(width: 10.0),
-                  GetBuilder<SettingsController>(
-                    builder: (controller) {
-                      if (controller.about != null) {
-                        return ConstrainedBox(
-                          constraints:
-                              BoxConstraints(maxWidth: pageWidth * 0.68),
-                          child: Text(
-                            controller.about!.capitalize!,
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15.0,
-                            ),
-                          ),
-                        );
-                      } else {
-                        // Return a fallback widget when about is null
-                        return Text(
-                          'No about information available',
-                          style: TextStyle(
-                            color: Colors.grey[500],
-                            fontStyle: FontStyle.italic,
-                          ),
-                        );
-                      }
-                    },
-                  ),
-                ],
+              child: GetBuilder<SettingsController>(
+                builder: (controller) {
+                  return FutureBuilder(
+                      future: controller.personalInfoFuture(),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          Map<String, dynamic>? data = snapshot.data!.data();
+                          String about = data!['about'];
+                          String image = data['imageUrl'] ?? "https://i.pinimg.com/236x/80/ef/85/80ef85c30a3fe9e338fc668ab10d136b.jpg";
+                          return Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 45.0,
+                                backgroundImage: NetworkImage(image),
+                              ),
+                              const SizedBox(width: 10.0),
+                              ConstrainedBox(
+                                constraints:
+                                    BoxConstraints(maxWidth: pageWidth * 0.68),
+                                child: Text(
+                                  about,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15.0,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        }
+                        return const Text("error");
+                      });
+                },
               ),
             ),
           ),

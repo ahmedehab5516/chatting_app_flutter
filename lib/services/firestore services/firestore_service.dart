@@ -15,7 +15,6 @@ class FirestoreService {
       int birthDay,
       int birthMonth,
       int birthYear,
-      String imageUrl,
       String gender) async {
     try {
       await _firestore.collection("users").doc(userID).set(User(
@@ -23,8 +22,10 @@ class FirestoreService {
             uid: userID,
             email: email,
             phoneNumber: phonenumber,
-            imageUrl: imageUrl,
+            imageUrl: "",
             birthDay: birthDay,
+            state: true,
+            isArchived : false,
             birthMonth: birthMonth,
             birthYear: birthYear,
             gender: gender,
@@ -33,39 +34,6 @@ class FirestoreService {
     } catch (e) {
       throw Exception(
           "Error occurred while adding a new user to Firestore: $e");
-    }
-  }
-
-  Future<void> updateDisplayName(String userID, String displayName) async {
-    try {
-      await _firestore
-          .collection("personal_info")
-          .doc(userID)
-          .set({"displayName": displayName});
-    } catch (e) {
-      throw Exception("Error updating display name: $e");
-    }
-  }
-
-  Future<void> updateAbout(String userID, String about) async {
-    try {
-      await _firestore
-          .collection("personal_info")
-          .doc(userID)
-          .update({"about": about});
-    } catch (e) {
-      throw Exception("Error updating about information: $e");
-    }
-  }
-
-  Future<void> updateProfileImage(String collectionName,String userID, String profileImgPath) async {
-    try {
-      await _firestore
-          .collection(collectionName)
-          .doc(userID)
-          .update({"imageUrl": profileImgPath});
-    } catch (e) {
-      throw Exception("Error updating profile image information: $e");
     }
   }
 
@@ -100,6 +68,53 @@ class FirestoreService {
           .snapshots();
     } catch (e) {
       throw Exception("Error getting the last message sent by a user: $e");
+    }
+  }
+
+  Future<void> addPersonalInfo(
+      String userID, String displayName, String about, String imageUrl) async {
+    try {
+      await firestoreInstance.collection("personal_info").doc(userID).set({
+        "displayName": displayName,
+        "about": about,
+        "imageUrl": imageUrl,
+      });
+    } catch (e) {
+      throw ("help meeeee $e");
+    }
+  }
+
+  Future<void> updateDisplayName(String userID, String displayName) async {
+    try {
+      await _firestore
+          .collection("personal_info")
+          .doc(userID)
+          .update({"displayName": displayName});
+    } catch (e) {
+      throw Exception("Error updating display name: $e");
+    }
+  }
+
+  Future<void> updateAbout(String userID, String about) async {
+    try {
+      await _firestore
+          .collection("personal_info")
+          .doc(userID)
+          .update({"about": about});
+    } catch (e) {
+      throw Exception("Error updating about information: $e");
+    }
+  }
+
+  Future<void> updateProfileImage(
+      String collectionName, String userID, String profileImgPath) async {
+    try {
+      await _firestore
+          .collection(collectionName)
+          .doc(userID)
+          .update({"imageUrl": profileImgPath});
+    } catch (e) {
+      throw Exception("Error updating profile image information: $e");
     }
   }
 }

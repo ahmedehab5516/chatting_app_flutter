@@ -3,6 +3,7 @@ import 'package:chatting_app_v2/screens/chat_room.dart';
 import 'package:chatting_app_v2/screens/profile.dart';
 import 'package:chatting_app_v2/screens/register_screen.dart';
 import 'package:get/get.dart';
+import 'screens/archive_screen.dart';
 import 'screens/edit_personal_info_scree.dart';
 import 'screens/forgot_password.dart/forgot_passwrod_screen.dart';
 import 'screens/home_screen.dart';
@@ -19,6 +20,7 @@ class Routes {
   static const String profile = "/profile";
   static const String setting = "/setting";
   static const String editPersonalInfo = "/editpersonalinfo";
+  static const String archiveScreen = "/archiveScreen";
 
   static List<GetPage<dynamic>>? pages = [
     GetPage(name: Routes.home, page: () => HomeScreen()),
@@ -28,8 +30,9 @@ class Routes {
     GetPage(name: Routes.forgotpassword, page: () => ForgotPasswordScreen()),
     GetPage(name: Routes.audiocall, page: () => const AudioCall()),
     GetPage(name: Routes.profile, page: () => Profile()),
-    GetPage(name: Routes.setting, page: () =>  SettingsScreen()),
+    GetPage(name: Routes.setting, page: () => SettingsScreen()),
     GetPage(
         name: Routes.editPersonalInfo, page: () => EditPersonaleInfoScreen()),
+    GetPage(name: Routes.archiveScreen, page: () => const ArchiveScreen()),
   ];
 }

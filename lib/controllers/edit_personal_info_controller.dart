@@ -1,37 +1,78 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:chatting_app_v2/controllers/settings_controller.dart';
 import 'package:chatting_app_v2/services/auth%20services/auth_service.dart';
+import 'package:chatting_app_v2/services/firebase_storage/online_storage.dart';
 import 'package:chatting_app_v2/services/firestore%20services/firestore_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+
 import '../shared_componants/pic_selecting_bottom_sheet.dart';
 
-class EditPersonaleInfoController extends GetxController {
+class EditPersonalInfoController extends GetxController {
+  // Services
   final FirestoreService firestoreService = FirestoreService();
   final AuthService authService = AuthService();
+
+  // Controllers
   late TextEditingController displayName;
   late TextEditingController about;
 
+  // User info
   User? user;
+  String? profileImage;
+  int charactersCount = 0;
+
+  @override
+  void onInit() {
+    super.onInit();
+    displayName = TextEditingController();
+    about = TextEditingController();
+    gettingCurrentUser();
+    fetchProfileImage();
+  }
+
+  @override
+  void onClose() {
+    displayName.dispose();
+    about.dispose();
+    super.onClose();
+    updateSettingsController();
+  }
+
   void gettingCurrentUser() {
-    if (authService.auth.currentUser != null) {
-      user = authService.auth.currentUser;
+    user = authService.auth.currentUser;
+  }
+
+  Future<void> fetchProfileImage() async {
+    try {
+      OnlineStorage onlineStorage = OnlineStorage();
+      update();
+      List<Reference>? items = await onlineStorage.getUserUploadedFiles(
+          "root", "profileImages", user!.uid);
+      if (items!.isNotEmpty) {
+        profileImage = await items.last.getDownloadURL();
+      }
+    } catch (e) {
+      throw ("Error getting image from the cloud: $e");
     }
+    Timer(const Duration(milliseconds: 500), () => update());
   }
 
   Future<void> saveProfileImage() async {
     try {
-      final SharedPreferences preferences =
-          await SharedPreferences.getInstance();
       if (profileImage != null) {
         await firestoreService.updateProfileImage(
             "personal_info", user!.uid, profileImage!);
         await firestoreService.updateProfileImage(
             "users", user!.uid, profileImage!);
       }
-      preferences.setString("profile_image", profileImage!);
     } catch (e) {
       Get.snackbar(
           "Error!",
@@ -41,18 +82,16 @@ class EditPersonaleInfoController extends GetxController {
     }
   }
 
-  Future<void> saveControllers() async {
+  Future<void> saveProfileDetails() async {
     try {
-      final SharedPreferences preferences =
-          await SharedPreferences.getInstance();
+
 
       if (displayName.text.isNotEmpty) {
         await firestoreService.updateDisplayName(user!.uid, displayName.text);
       }
       if (about.text.isNotEmpty) {
         await firestoreService.updateAbout(user!.uid, about.text);
-
-        preferences.setString("about", about.text);
+   
       }
     } catch (e) {
       Get.snackbar(
@@ -61,17 +100,32 @@ class EditPersonaleInfoController extends GetxController {
               .capitalize!);
       throw ("Error updating profile information: $e");
     }
+    update();
   }
 
-  Stream<DocumentSnapshot<Map<String, dynamic>>> stream() {
+  Future<void> selectGalleryImage() async {
+    try {
+      final pickedImg =
+          await ImagePicker().pickImage(source: ImageSource.gallery);
+      if (pickedImg != null) {
+        OnlineStorage onlineStorage = OnlineStorage();
+        profileImage = await onlineStorage.uploadFileForUser(
+            "root", "profileImages", user!.uid, File(pickedImg.path));
+      }
+    } catch (e) {
+      throw ("Error selecting image: $e");
+    }
+    update();
+  }
+
+  Stream<DocumentSnapshot<Map<String, dynamic>>> personalInfoStream() {
     return firestoreService.firestoreInstance
         .collection("personal_info")
         .doc(user!.uid)
         .snapshots();
   }
 
-  int charactersCount = 0;
-  Future<void> showMyBottomSheet(String newText, int fieldLimit,
+  Future<void> showEditBottomSheet(String newText, int fieldLimit,
       BuildContext context, TextEditingController textController) async {
     final result = showBottomSheet(
       enableDrag: true,
@@ -89,12 +143,10 @@ class EditPersonaleInfoController extends GetxController {
                     child: TextField(
                       onChanged: (value) async {
                         if (textController.text.isNotEmpty) {
-                          saveControllers();
+                          saveProfileDetails();
                         }
                         if (charactersCount < fieldLimit) {
-                          setState(
-                            () => charactersCount = value.length,
-                          );
+                          setState(() => charactersCount = value.length);
                         }
                       },
                       controller: textController,
@@ -121,43 +173,7 @@ class EditPersonaleInfoController extends GetxController {
     });
   }
 
-  String? profileImage;
-  Future<void> galleryImage() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    try {
-      final pickedImg =
-          await ImagePicker().pickImage(source: ImageSource.gallery);
-
-      if (pickedImg != null) {
-        prefs.setString("profile_image", pickedImg.path);
-        updateProfileImage();
-      }
-    } catch (e) {
-      throw ("Error selecting image: $e");
-    }
-  }
-
-  Future<void> clearProfileImage() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.remove("profile_image");
-    updateProfileImage();
-  }
-
-  Future<void> updateProfileImage() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    DocumentSnapshot<Map<String, dynamic>> userPersonalDate =
-        await firestoreService.firestoreInstance
-            .collection("personal_info")
-            .doc(user!.uid)
-            .get();
-
-    profileImage =
-        prefs.getString("profile_image") ?? userPersonalDate['imageUrl'];
-
-    update();
-  }
-
-  void getBottomSheet(BuildContext context) {
+  void showProfileImageBottomSheet(BuildContext context) {
     const double radius = 30.0;
     const Color backgroundColor = Colors.white;
     Color? strockColor = Colors.green[900];
@@ -170,7 +186,7 @@ class EditPersonaleInfoController extends GetxController {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             GestureDetector(
-              onTap: () => galleryImage(),
+              onTap: () => selectGalleryImage(),
               child: BuildBottomSheetItemForSelectingPic(
                 title: "Gallery",
                 backgroundColor: backgroundColor,
@@ -194,63 +210,12 @@ class EditPersonaleInfoController extends GetxController {
     );
     result.closed.then((value) {
       saveProfileImage();
+      update();
     });
   }
 
-  @override
-  void onClose() {
-    super.onClose();
-    displayName.dispose();
-    about.dispose();
-  }
-
-  @override
-  void onInit() {
-    super.onInit();
-    // Fetch profile image when the controller is initialized
-    updateProfileImage();
-    displayName = TextEditingController();
-    about = TextEditingController();
-    gettingCurrentUser();
+  void updateSettingsController() {
+    SettingsController settingsController = Get.put(SettingsController());
+    settingsController.update();
   }
 }
-// showBottomSheet(
-//           enableDrag: true,
-//           context: context,
-//           builder: (context) => StatefulBuilder(
-//             builder: (context, setState) => SizedBox(
-//               height: 70.0,
-//               child: Row(
-//                 crossAxisAlignment: CrossAxisAlignment.center,
-//                 children: [
-//                   Expanded(
-//                     child: Padding(
-//                       padding: const EdgeInsets.symmetric(horizontal: 15.0),
-//                       child: TextField(
-//                         onChanged: (value) async {
-//                           if (textController!.text.isNotEmpty) {
-//                             controller.saveController();
-//                           }
-//                           if (charactersCount < 20) {
-//                             setState(
-//                               () => charactersCount = value.length,
-//                             );
-//                           }
-//                           textController!.addListener(() {
-//                             final newText = controller.displayName.text;
-//                             if (newText.length > 20) {
-//                               // If the text length exceeds the maximum limit, remove the extra characters
-//                               final truncatedText = newText.substring(0, 20);
-
-//                               textController!.value = TextEditingValue(
-//                                 text: truncatedText,
-//                                 selection: TextSelection.collapsed(
-//                                     offset: truncatedText.length),
-//                               );
-//                             }
-
-//                             setState(() {
-//                               charactersCount = newText.length;
-//                             });
-//                           });
-//                         },

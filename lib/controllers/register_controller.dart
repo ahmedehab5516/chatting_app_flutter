@@ -1,5 +1,4 @@
 import 'package:chatting_app_v2/services/firestore%20services/firestore_service.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -47,18 +46,12 @@ class RegisterController extends GetxController {
   }
 
   Future<void> signUp() async {
-
     if (regirsterKey.currentState!.validate() && acceptTerms) {
       try {
         UserCredential currentUser =
             await _authService.createUserWithEmailAndPasswordToFirebase(
                 email.text, password.text);
-        DocumentSnapshot<Map<String, dynamic>> userPersonalDate =
-            await _firestoreService.firestoreInstance
-                .collection("personal_info")
-                .doc(currentUser.user!.uid)
-                .get();
-       
+
         await _firestoreService.addUserToFirestore(
           currentUser.user!.uid,
           username.text,
@@ -67,12 +60,11 @@ class RegisterController extends GetxController {
           int.parse(birthDate.text.substring(0, 2)),
           int.parse(birthDate.text.substring(3, 5)),
           int.parse(birthDate.text.substring(6, 10)),
-          userPersonalDate['imageUrl'],
           genderChoice,
         );
         update();
-        await _firestoreService.updateDisplayName(
-            currentUser.user!.uid, username.text);
+        await _firestoreService.addPersonalInfo(
+            currentUser.user!.uid, username.text, "", "");
         Get.back();
       } on FirebaseException catch (e) {
         Get.snackbar("", '',

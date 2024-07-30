@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:chatting_app_v2/controllers/edit_personal_info_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -6,8 +5,8 @@ import 'package:get/get.dart';
 class EditPersonaleInfoScreen extends StatelessWidget {
   EditPersonaleInfoScreen({super.key});
 
-  final EditPersonaleInfoController _controller =
-      Get.put(EditPersonaleInfoController());
+  final EditPersonalInfoController _controller =
+      Get.put(EditPersonalInfoController());
   @override
   Widget build(BuildContext context) {
     double pageWidth = MediaQuery.of(context).size.width;
@@ -39,13 +38,13 @@ class EditPersonaleInfoScreen extends StatelessWidget {
                     child: CircleAvatar(
                       radius: 100.0,
                       backgroundColor: Colors.green[900],
-                      child: GetBuilder<EditPersonaleInfoController>(
+                      child: GetBuilder<EditPersonalInfoController>(
                         builder: (controller) {
                           if (controller.profileImage != null) {
                             return CircleAvatar(
                               radius: 72.0,
                               backgroundImage:
-                                  FileImage(File(controller.profileImage!)),
+                                  NetworkImage(controller.profileImage!),
                             );
                           } else {
                             // Handle case when profileImage is null, e.g., display a placeholder
@@ -68,7 +67,7 @@ class EditPersonaleInfoScreen extends StatelessWidget {
                       top: 100.0,
                       left: 130.0,
                       child: GestureDetector(
-                        onTap: () => _controller.getBottomSheet(context),
+                        onTap: () => _controller.showProfileImageBottomSheet(context),
                         child: CircleAvatar(
                           radius: 25.0,
                           backgroundColor: Colors.green[900],
@@ -83,7 +82,7 @@ class EditPersonaleInfoScreen extends StatelessWidget {
                 ],
               ),
               StreamBuilder(
-                  stream: _controller.stream(),
+                  stream: _controller.personalInfoStream(),
                   builder: (context, snapshot) {
                     if (snapshot.hasError) {
                       return const Center(child: Text("error"));
@@ -96,8 +95,7 @@ class EditPersonaleInfoScreen extends StatelessWidget {
 
                     // Extract personal information from the document data
                     final name = data!['displayName'];
-                    final about =
-                        data['about'] ?? 'No about information available';
+                    final about = data['about'];
 
                     return Column(
                       children: [
@@ -158,7 +156,7 @@ class BuildInfoCard extends StatelessWidget {
   final String title;
   final IconData icon;
   final int fieldLimit;
-  final EditPersonaleInfoController controller;
+  final EditPersonalInfoController controller;
   final TextEditingController? textController;
 
   @override
@@ -169,10 +167,8 @@ class BuildInfoCard extends StatelessWidget {
           return;
         }
 
-        controller.showMyBottomSheet(
+        controller.showEditBottomSheet(
             textController!.text, fieldLimit, context, textController!);
-
-      
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 20.0),

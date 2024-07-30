@@ -1,8 +1,6 @@
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../shared_componants/pic_selecting_bottom_sheet.dart';
 
@@ -10,13 +8,11 @@ class ProfileController extends GetxController {
   String? profileImage;
 
   Future<void> galleryImage() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
     try {
       final pickedImg =
           await ImagePicker().pickImage(source: ImageSource.gallery);
 
       if (pickedImg != null) {
-        prefs.setString("profile_image", pickedImg.path);
         updateProfileImage();
       }
     } catch (e) {
@@ -25,14 +21,10 @@ class ProfileController extends GetxController {
   }
 
   Future<void> clearProfileImage() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.remove("profile_image");
     updateProfileImage();
   }
 
   Future<void> updateProfileImage() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    profileImage = prefs.getString("profile_image");
     update();
   }
 
@@ -96,9 +88,7 @@ class ProfileController extends GetxController {
           child: Text("Verifiy security code"),
         ),
       ],
-    ).then((value) {
-      
-    });
+    ).then((value) {});
   }
 
   @override

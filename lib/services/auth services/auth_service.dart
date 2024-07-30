@@ -3,7 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 class AuthService {
   // instance of AuthService
   final FirebaseAuth _auth = FirebaseAuth.instance;
-   FirebaseAuth get auth => _auth;
+
+  FirebaseAuth get auth => _auth;
 
   //sign in
   Future<UserCredential> signInWithEmailAndPasswordToFirebase(
@@ -11,6 +12,7 @@ class AuthService {
     try {
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
           email: email, password: password);
+
       return userCredential;
     } on FirebaseAuthException catch (e) {
       throw Exception("something went wrong signing a user in ${e.code}");

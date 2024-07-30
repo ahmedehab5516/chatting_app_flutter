@@ -1,4 +1,3 @@
-import 'dart:io';
 
 import 'package:chatting_app_v2/controllers/chat_room_controller.dart';
 import 'package:chatting_app_v2/models/message.dart';
@@ -45,6 +44,9 @@ class ChatRoom extends StatelessWidget {
                   if (value == "clear_chat") {
                     _chatRoomController.clearChat();
                   }
+                  if (value == "wallpaper") {
+                    _chatRoomController.chooseAndUploadWallpaper();
+                  }
                 });
               },
               icon: const Icon(FontAwesomeIcons.ellipsisVertical)),
@@ -52,117 +54,103 @@ class ChatRoom extends StatelessWidget {
         leadingWidth: 25.0,
         title: Row(
           children: [
-            FutureBuilder(
-                future: _chatRoomController.getProfileImg(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasError) {
-                    return const CircleAvatar(
-                      child: Icon(
-                        Icons.error,
-                        color: Colors.black,
-                      ),
-                    );
-                  }
-                  if (!snapshot.hasData) {
-                    return const CircularProgressIndicator(
-                      color: Colors.black,
-                      strokeWidth: 0.8,
-                    );
-                  }
-                  Map<String, dynamic>? data = snapshot.data!.data();
-                  return CircleAvatar(
-                    backgroundImage: FileImage(File(data!['imageUrl'])),
-                  );
-                }),
+            GetBuilder<ChatRoomController>(
+              builder: (controller) => CircleAvatar(
+                radius: 23,
+                backgroundImage: NetworkImage(controller.profileImage ??
+                    "https://i.pinimg.com/236x/80/ef/85/80ef85c30a3fe9e338fc668ab10d136b.jpg"),
+              ),
+            ),
             const SizedBox(width: 10.0),
             Text(_chatRoomController.routeArgument['username'].toString()),
           ],
         ),
         backgroundColor: Colors.teal[800],
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-              image: NetworkImage(
-                  "https://i.pinimg.com/474x/43/db/2b/43db2b3dbb56d0b1c1b5aeca80544ef0.jpg"),
-              fit: BoxFit.cover),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Expanded(
-              child: StreamBuilder(
-                stream: _chatRoomController.gettingStream(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasError) {
-                    return const Text("Error");
-                  } else if (!snapshot.hasData) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+      body: GetBuilder<ChatRoomController>(
+        builder: (controller) => Container(
+          decoration: BoxDecoration(
+            image: DecorationImage(
+                image: NetworkImage(controller.wallpaperImage!),
+                fit: BoxFit.cover),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Expanded(
+                child: StreamBuilder(
+                  stream: controller.gettingStream(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return const Text("Error");
+                    } else if (!snapshot.hasData) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
 
-                  List<QueryDocumentSnapshot<Map<String, dynamic>>>? messages =
-                      snapshot.data!.docs;
-                  List<BuildMessageBubble> messageBubbles = [];
-                  for (var message in messages) {
-                    final messageContent = message['messageContent'];
-                    final receiverEmail = message['receiverEmail'];
-                    final senderEmail = message['senderEmail'];
-                    final timestamp = message['timestamp'];
-                    BuildMessageBubble messageBubble = BuildMessageBubble(
-                      message: Message(
-                        messageContent: messageContent,
-                        receiverEmail: receiverEmail,
-                        senderEmail: senderEmail,
-                        timestamp: timestamp,
+                    List<QueryDocumentSnapshot<Map<String, dynamic>>>?
+                        messages = snapshot.data!.docs;
+                    List<BuildMessageBubble> messageBubbles = [];
+                    for (var message in messages) {
+                      final messageContent = message['messageContent'];
+                      final receiverEmail = message['receiverEmail'];
+                      final senderEmail = message['senderEmail'];
+                      final timestamp = message['timestamp'];
+                      BuildMessageBubble messageBubble = BuildMessageBubble(
+                        message: Message(
+                          messageContent: messageContent,
+                          receiverEmail: receiverEmail,
+                          senderEmail: senderEmail,
+                          timestamp: timestamp,
+                        ),
+                        isMe: _chatRoomController.user!.email == senderEmail,
+                      );
+                      messageBubbles.add(messageBubble);
+                    }
+
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ListView(children: messageBubbles),
                       ),
-                      isMe: _chatRoomController.user!.email == senderEmail,
                     );
-                    messageBubbles.add(messageBubble);
-                  }
-
-                  return Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: ListView(children: messageBubbles),
-                    ),
-                  );
-                },
+                  },
+                ),
               ),
-            ),
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 15.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: BuildTextField(
-                      controller: _chatRoomController.messageController,
-                      validatorFunction: (value) => null,
-                      isPasswordField: false,
-                      obsecureText: false,
-                      hintText: "message here...",
-                    ),
-                  ),
-                  MaterialButton(
-                    onPressed: () => _chatRoomController.sendMessage(),
-                    padding: const EdgeInsets.all(0),
-                    child: Container(
-                      margin: const EdgeInsets.all(0),
-                      padding: const EdgeInsets.all(18.0),
-                      decoration: BoxDecoration(
-                          color: Colors.amber,
-                          borderRadius: BorderRadius.circular(20)),
-                      child: const Text(
-                        "send",
-                        style: TextStyle(fontSize: 15),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10.0, vertical: 15.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: BuildTextField(
+                        controller: _chatRoomController.messageController,
+                        validatorFunction: (value) => null,
+                        isPasswordField: false,
+                        obsecureText: false,
+                        hintText: "message here...",
                       ),
                     ),
-                  )
-                ],
-              ),
-            )
-          ],
+                    MaterialButton(
+                      onPressed: () => _chatRoomController.sendMessage(),
+                      padding: const EdgeInsets.all(0),
+                      child: Container(
+                        margin: const EdgeInsets.all(0),
+                        padding: const EdgeInsets.all(18.0),
+                        decoration: BoxDecoration(
+                            color: Colors.amber,
+                            borderRadius: BorderRadius.circular(20)),
+                        child: const Text(
+                          "send",
+                          style: TextStyle(fontSize: 15),
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+              )
+            ],
+          ),
         ),
       ),
     );
